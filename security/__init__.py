@@ -6,10 +6,10 @@ import base58
 
 
 class Security:
-    __salt = "aaa".encode()
+    __salt = "aabb"
 
     @staticmethod
-    def generateRSAKey():
+    def generateRSAKey(keyword="None"):
         # Gen private key
         private_key_obj = rsa.generate_private_key(
             public_exponent=65537,
@@ -26,26 +26,31 @@ class Security:
         public_key = base58.b58encode(
             hashlib.sha512(Security.__pubKey(privateKey=private_key_obj)).hexdigest()).decode()
 
-        return private_key, public_key
+        signature = Security.__getSignature(privateKey=private_key_obj,keyword=keyword)
+        scriptKey = private_key + " " + base58.b58encode(signature.hex()).decode() + " " + keyword
+
+        return scriptKey, public_key
 
     @staticmethod
-    def getRSAPublicKey(private_key=None):
+    def getRSAPublicKey(scriptKey=None):
+        scriptKey = scriptKey.split(" ")
         # Get by private key pem
-        get_pri = Security.__priKey(privateKey=private_key)
+        get_pri = Security.__priKey(privateKey=scriptKey[0])
 
         # Get public key by get prive
         pub_key = base58.b58encode(hashlib.sha512(Security.__pubKey(get_pri)).hexdigest()).decode()
         return pub_key
 
     @staticmethod
-    def verifySignature(privateKey=None, publicKey=None):
-        priKey = Security.__priKey(privateKey=privateKey)
+    def verifySignature(scriptKey=None, publicKey=None):
+        scriptKey = scriptKey.split(" ")
+        signature = bytes.fromhex(base58.b58decode(scriptKey[1]).decode())
+        priKey = Security.__priKey(privateKey=scriptKey[0])
         pub_key_obj = Security.__pubKey(privateKey=priKey, onlyObject=True)
-        pub_key = base58.b58encode(
-            hashlib.sha512(Security.__pubKey(privateKey=priKey)).hexdigest()).decode()
+        pub_key = base58.b58encode(hashlib.sha512(Security.__pubKey(privateKey=priKey)).hexdigest()).decode()
         kk = pub_key_obj.verify(
-            Security.__getSignature(privateKey=priKey),
-            Security.__salt,
+            signature,
+            (Security.__salt+scriptKey[2]).encode(),
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA512()),
                 salt_length=padding.PSS.MAX_LENGTH
@@ -59,6 +64,7 @@ class Security:
             return True
         except:
             return False
+
 
     @staticmethod
     def __pubKey(privateKey=None, onlyObject=False):
@@ -79,9 +85,9 @@ class Security:
         return get_pri
 
     @staticmethod
-    def __getSignature(privateKey=None):
+    def __getSignature(privateKey=None,keyword="None"):
         signature = privateKey.sign(
-            Security.__salt,
+            (Security.__salt+keyword).encode(),
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA512()),
                 salt_length=padding.PSS.MAX_LENGTH

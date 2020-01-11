@@ -40,11 +40,12 @@ def createBlock():
     return json.dumps(chain.getChainObject()["data"][-1].getData())
 
 
-@app.route("/generateKey", methods=["GET"])
+@app.route("/generateKey", methods=["POST"])
 def generateKey():
-    private_key, public_key = Security.generateRSAKey()
+    data = json.loads(request.data)
+    scriptKey, public_key = Security.generateRSAKey(keyword=data["keyword"])
     ret = {
-        "privateKey": private_key,
+        "scriptKey": scriptKey,
         "publicKey": public_key
     }
     return json.dumps(ret)
@@ -54,7 +55,7 @@ def generateKey():
 def getBlockData():
     global chain
     data = json.loads(request.data)
-    privateKey = data["privateKey"]
+    scriptKey = data["scriptKey"]
     try:
         chainHash = chain.getChainHash()["data"]
         index = chainHash.index(data["blockHash"])
@@ -62,7 +63,7 @@ def getBlockData():
     except:
         block = chain.getChainObject()["data"][int(data["index"])]
 
-    ret = block.getBlockData(privateKey=privateKey)
+    ret = block.getBlockData(scriptKey=scriptKey)
     return json.dumps(ret)
 
 
@@ -70,7 +71,7 @@ def getBlockData():
 def getPublicKey():
     data = json.loads(request.data)
     ret = {
-        "publicKey": Security.getRSAPublicKey(private_key=data["privateKey"])
+        "publicKey": Security.getRSAPublicKey(scriptKey=data["scriptKey"])
     }
     return json.dumps(ret)
 

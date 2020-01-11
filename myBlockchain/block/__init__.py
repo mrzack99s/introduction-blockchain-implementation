@@ -17,6 +17,14 @@ class Block():
             "gpsPosition": None
         }
 
+    def setGpsPosition(self, gpsPosition=None):
+        temp = base58.b58decode(self.__data)
+        data = json.loads(temp)
+        data["gpsPosition"] = json.dumps(gpsPosition)
+        jsonData = json.dumps(data, sort_keys=True).encode('utf-8')
+        self.__data = base58.b58encode(jsonData)
+
+
     def setValueBlock(self, data=None):
         self.__index = data["index"]
         self.__timestamp = datetime.datetime.now()
@@ -42,9 +50,6 @@ class Block():
             self.__data["prevHash"] = hashlib.sha512(
                 json.dumps(lastBlockData, sort_keys=True).encode('utf-8')).hexdigest()
 
-    def setGpsPosition(self, gpsPosition=None):
-        self.__data["gpsPosition"] = gpsPosition
-
     def getIndex(self):
         return self.__index
 
@@ -56,8 +61,8 @@ class Block():
         jsonData = json.loads(temp)
         return jsonData
 
-    def getBlockData(self,privateKey=None):
-        if Security.verifySignature(privateKey=privateKey,publicKey=self.__authorize):
+    def getBlockData(self,scriptKey=None):
+        if Security.verifySignature(scriptKey=scriptKey,publicKey=self.__authorize):
             temp = base58.b58decode(copy.deepcopy(self.__data))
             jsonData = json.loads(temp)
             jsonData["gpsPosition"] = base58.b58decode(jsonData["gpsPosition"]).decode()
