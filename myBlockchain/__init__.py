@@ -12,7 +12,7 @@ class myBlockchain():
 
     def __appendBlock(self, block=None):
         self.__chainObject.append(block)
-        self.__chainHash.append({
+        self.__chainHash.extend({
             block.getData()["blockHash"]: block.getIndex()
         })
 

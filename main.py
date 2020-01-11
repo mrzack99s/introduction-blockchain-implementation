@@ -56,8 +56,8 @@ def getBlockData():
     data = json.loads(request.data)
     privateKey = data["privateKey"]
     try:
-        chainHash = chain.getChainHash()["data"][0]
-        index = list(chainHash.keys()).index(data["blockHash"])
+        chainHash = chain.getChainHash()["data"]
+        index = chainHash.index(data["blockHash"])
         block = chain.getChainObject()["data"][index]
     except:
         block = chain.getChainObject()["data"][int(data["index"])]
