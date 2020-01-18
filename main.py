@@ -21,9 +21,8 @@ def getChain():
         for x in myChain["data"]:
             s = {
                 "index": x.getIndex(),
-                "prevHash": x.getData()["prevHash"],
-                "blockHash": x.getData()["blockHash"],
-                "gpsPosition": x.getData()["gpsPosition"]
+                "header": x.getData()["header"],
+                "data": x.getData()["data"],
             }
             ret.append(s)
     else:

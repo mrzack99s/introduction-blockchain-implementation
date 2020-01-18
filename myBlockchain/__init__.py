@@ -13,7 +13,7 @@ class myBlockchain():
     def __appendBlock(self, block=None):
         self.__chainObject.append(block)
         self.__chainHash.extend({
-            block.getData()["blockHash"]: block.getIndex()
+            block.getData()["header"]["blockHash"]
         })
 
     def createNewBlock(self, gpsPosition=None, authorize=None):
@@ -32,14 +32,15 @@ class myBlockchain():
 
     def checkChainHaveCorrect(self):
         for count in range(1, len(self.__chainObject), 1):
-            if self.__chainObject[count].getData()["prevHash"] != self.__getCheckSumHashBlock(count - 1):
+            if self.__chainObject[count].getData()["header"]["prevHash"] != self.__getCheckSumHashBlock(count - 1):
                 return "Have change in block " + str(count - 1)
 
-        temp = copy.deepcopy(self.__chainObject[-1].getData())
-        temp["blockHash"] = None
-        checkSum = hashlib.sha512(json.dumps(temp, sort_keys=True).encode('utf-8')).hexdigest()
-        if self.__chainObject[-1].getData()["blockHash"] != checkSum:
-            return "Have change in block " + str(self.__chainObject[-1].getIndex())
+        if len(self.__chainObject) > 1:
+            temp = copy.deepcopy(self.__chainObject[-1].getData())
+            temp["header"]["blockHash"] = None
+            checkSum = hashlib.sha512(json.dumps(temp, sort_keys=True).encode('utf-8')).hexdigest()
+            if self.__chainObject[-1].getData()["header"]["blockHash"] != checkSum:
+                return "Have change in block " + str(self.__chainObject[-1].getIndex())
 
         return "correct"
 
